@@ -16,11 +16,7 @@ function Upload() {
         try {
             const formData = new FormData();
             formData.append('predictionImage', predictionImage);
-            const reponse = await axios.post("http://localhost:8080/api/predict",{
-                data: {
-                    formData
-                }
-            })
+            const reponse = await axios.post("http://localhost:8080/api/predict",formData)
             setResult(reponse.data);
         } catch (error:any) {
             setErrRes({
