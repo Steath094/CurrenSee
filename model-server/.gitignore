@@ -1,0 +1,42 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs and runtime output
+logs/
+*.log
+*.pid
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+
+# Model binaries and generated artifacts
+model/*.h5
+model/*.keras
+model/*.pkl
+model/*.joblib
+model/*.onnx
+model/*.pt
+model/*.pth
+
+# Local notebooks and checkpoints
+.ipynb_checkpoints/
+checkpoints/
+runs/
