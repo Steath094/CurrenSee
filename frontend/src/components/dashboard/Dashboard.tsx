@@ -6,10 +6,12 @@ import type {
   PredictionRecord,
 } from '../../types/prediction'
 import {
+  getModels,
   getApiErrorMessage,
   getPredictionPreview,
   postPrediction,
-  updatePredictionFeedback,
+  type AvailableModel,
+  submitFeedback,
 } from '../../lib/api'
 import MobileNav from './MobileNav'
 import ModelSelector from './ModelSelector'
@@ -71,14 +73,25 @@ function normalizePrediction(data: PredictionApiResponse): CurrencyPrediction {
     data.denomination ?? data.prediction ?? data.label,
   )
   const confidence = normalizeConfidence(data.confidence ?? data.score)
-
-  return {
+  const normalizedPrediction: CurrencyPrediction = {
     confidence,
     currency: data.currency ?? inferCurrency(denomination),
     denomination,
-    predictionId: data.predictionId,
-    series: data.series ?? 'Model Prediction',
+    imageUrl: data.imageUrl ?? null,
+    series:
+      data.series ??
+      (data.modelVersion ? `Model ${data.modelVersion}` : 'Model Prediction'),
   }
+
+  if (data.modelVersion) {
+    normalizedPrediction.modelVersion = data.modelVersion
+  }
+
+  if (data.predictionId) {
+    normalizedPrediction.predictionId = data.predictionId
+  }
+
+  return normalizedPrediction
 }
 
 type DashboardProps = {
@@ -92,6 +105,9 @@ function Dashboard({ onSignOut }: DashboardProps) {
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isRecentActivityLoading, setIsRecentActivityLoading] = useState(false)
+  const [availableModels, setAvailableModels] = useState<AvailableModel[]>([])
+  const [isModelsLoading, setIsModelsLoading] = useState(false)
+  const [modelsError, setModelsError] = useState<string>()
   const [prediction, setPrediction] = useState<CurrencyPrediction>()
   const [previewUrl, setPreviewUrl] = useState<string>()
   const [recentActivityError, setRecentActivityError] = useState<string>()
@@ -99,7 +115,7 @@ function Dashboard({ onSignOut }: DashboardProps) {
     [],
   )
   const [selectedFile, setSelectedFile] = useState<File>()
-  const [selectedModel, setSelectedModel] = useState('Model v2 Accurate')
+  const [selectedModelVersion, setSelectedModelVersion] = useState('')
   const [uploadError, setUploadError] = useState<string>()
 
   const loadRecentActivity = useCallback(async () => {
@@ -132,6 +148,44 @@ function Dashboard({ onSignOut }: DashboardProps) {
     void loadRecentActivity()
   }, [loadRecentActivity])
 
+  useEffect(() => {
+    let isMounted = true
+
+    const loadModels = async () => {
+      setIsModelsLoading(true)
+      setModelsError(undefined)
+
+      try {
+        const models = await getModels()
+
+        if (!isMounted) {
+          return
+        }
+
+        setAvailableModels(models)
+        setSelectedModelVersion((currentVersion) =>
+          models.some((model) => model.version === currentVersion)
+            ? currentVersion
+            : (models[0]?.version ?? ''),
+        )
+      } catch (error) {
+        if (isMounted) {
+          setModelsError(getApiErrorMessage(error))
+        }
+      } finally {
+        if (isMounted) {
+          setIsModelsLoading(false)
+        }
+      }
+    }
+
+    void loadModels()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const handleFileSelected = (file: File) => {
     setSelectedFile(file)
     setUploadError(undefined)
@@ -143,8 +197,14 @@ function Dashboard({ onSignOut }: DashboardProps) {
       return
     }
 
+    if (!selectedModelVersion) {
+      setUploadError('No active prediction model is available.')
+      return
+    }
+
     const formData = new FormData()
     formData.append('predictionImage', selectedFile)
+    formData.append('modelVersion', selectedModelVersion)
 
     setFeedback(null)
     setFeedbackError(undefined)
@@ -162,8 +222,8 @@ function Dashboard({ onSignOut }: DashboardProps) {
     }
   }
 
-  const handleFeedback = async (nextFeedback: Feedback) => {
-    if (!nextFeedback || !prediction?.predictionId) {
+  const handleFeedback = async (wasCorrect: boolean, correctedLabel?: string) => {
+    if (!prediction?.predictionId) {
       return
     }
 
@@ -171,11 +231,8 @@ function Dashboard({ onSignOut }: DashboardProps) {
     setIsFeedbackSubmitting(true)
 
     try {
-      await updatePredictionFeedback(
-        prediction.predictionId,
-        nextFeedback === 'positive',
-      )
-      setFeedback(nextFeedback)
+      await submitFeedback(prediction.predictionId, wasCorrect, correctedLabel)
+      setFeedback(wasCorrect ? 'positive' : 'negative')
       await loadRecentActivity()
     } catch (error) {
       setFeedbackError(getApiErrorMessage(error))
@@ -193,18 +250,22 @@ function Dashboard({ onSignOut }: DashboardProps) {
       />
 
       <div className="dashboard-shell">
-        <TopBar onSignOut={onSignOut} />
+        <TopBar />
 
         {activeView === 'scan' ? (
           <main className="dashboard-main">
             <section className="analysis-column" aria-label="Currency analysis">
               <ModelSelector
-                onSelectModel={setSelectedModel}
-                selectedModel={selectedModel}
+                errorMessage={modelsError}
+                isLoading={isModelsLoading}
+                models={availableModels}
+                onSelectModel={setSelectedModelVersion}
+                selectedModelVersion={selectedModelVersion}
               />
 
               <Upload
                 errorMessage={uploadError}
+                isAnalyzeDisabled={isModelsLoading || !selectedModelVersion}
                 isAnalyzing={isAnalyzing}
                 onAnalyze={handleAnalyze}
                 onFileSelected={handleFileSelected}

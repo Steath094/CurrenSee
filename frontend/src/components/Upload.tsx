@@ -5,6 +5,7 @@ import Icon from './common/Icon'
 
 type UploadProps = {
   errorMessage?: string
+  isAnalyzeDisabled?: boolean
   isAnalyzing: boolean
   onAnalyze: () => void
   onFileSelected: (file: File) => void
@@ -14,6 +15,7 @@ type UploadProps = {
 
 function Upload({
   errorMessage,
+  isAnalyzeDisabled = false,
   isAnalyzing,
   onAnalyze,
   onFileSelected,
@@ -103,7 +105,7 @@ function Upload({
 
       <Button
         className="analyze-button"
-        disabled={isAnalyzing}
+        disabled={isAnalyzing || isAnalyzeDisabled}
         fullWidth
         onClick={onAnalyze}
         size="large"

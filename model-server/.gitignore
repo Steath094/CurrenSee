@@ -28,13 +28,14 @@ dist/
 *.egg-info/
 
 # Model binaries and generated artifacts
-model/*.h5
-model/*.keras
-model/*.pkl
-model/*.joblib
-model/*.onnx
-model/*.pt
-model/*.pth
+# models/*
+# models/*.h5
+# models/*.keras
+# models/*.pkl
+# models/*.joblib
+# models/*.onnx
+# models/*.pt
+# models/*.pth
 
 # Local notebooks and checkpoints
 .ipynb_checkpoints/

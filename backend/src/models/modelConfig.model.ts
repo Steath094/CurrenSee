@@ -27,11 +27,18 @@ const modelConfigSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    isDefault: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+modelConfigSchema.index({ isActive: 1, isDefault: -1, createdAt: 1 });
 
 export const ModelConfig = mongoose.model(
   "ModelConfig",

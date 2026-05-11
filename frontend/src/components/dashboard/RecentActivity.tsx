@@ -89,9 +89,16 @@ function RecentActivity({
           const status = getConfidenceStatus(item.confidence)
 
           return (
-            <button className="activity-item" key={item._id} type="button">
+            <article
+              className="activity-item"
+              key={item.predictionId ?? item._id ?? `${item.denomination}-${item.createdAt}`}
+            >
               <div className="activity-item__thumb">
-                <Icon name="receipt_long" size="md" />
+                {item.imageUrl ? (
+                  <img alt={`${item.denomination} upload`} src={item.imageUrl} />
+                ) : (
+                  <Icon name="receipt_long" size="md" />
+                )}
               </div>
               <div className="activity-item__content">
                 <strong>{item.denomination}</strong>
@@ -100,7 +107,7 @@ function RecentActivity({
               <span className={`activity-item__score activity-item__score--${status}`}>
                 {formatConfidence(item.confidence)}
               </span>
-            </button>
+            </article>
           )
         })}
       </div>

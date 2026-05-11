@@ -2,30 +2,27 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   getApiErrorMessage,
+  getAuthUserName,
   getProfile,
   getUsageLimit,
+  saveAuthUserName,
   updateProfile,
 } from '../../lib/api'
 import type { UsageLimit, UserProfile } from '../../lib/api'
 import Button from '../common/Button'
 import Icon from '../common/Icon'
 
-type ProfileMenuProps = {
-  onSignOut: () => void
-}
-
 type ProfilePanel = 'menu' | 'update' | 'usage'
 
-function getInitials(profile?: UserProfile) {
-  if (!profile) {
-    return 'MI'
+function getInitials(name?: string) {
+  if (!name) {
+    return 'CS'
   }
 
-  const source = profile.name || profile.email
-  const [first = '', second = ''] = source.split(/[.\s@_-]+/)
-  const initials = `${first.charAt(0)}${second.charAt(0)}`.toUpperCase()
+  const [first = '', second = ''] = name.split(/[.\s@_-]+/)
+  const initials = `${first.charAt(0)}${second.charAt(0) || first.charAt(1)}`.toUpperCase()
 
-  return initials || 'MI'
+  return initials || 'CS'
 }
 
 function formatDate(value?: string) {
@@ -39,8 +36,9 @@ function formatDate(value?: string) {
   }).format(new Date(value))
 }
 
-function ProfileMenu({ onSignOut }: ProfileMenuProps) {
+function ProfileMenu() {
   const [activePanel, setActivePanel] = useState<ProfilePanel>('menu')
+  const [displayName, setDisplayName] = useState(() => getAuthUserName() ?? '')
   const [errorMessage, setErrorMessage] = useState<string>()
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -57,6 +55,8 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
     try {
       const response = await getProfile()
       setProfile(response.user)
+      saveAuthUserName(response.user.name)
+      setDisplayName(response.user.name)
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error))
     } finally {
@@ -111,13 +111,14 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
 
     try {
       const response = await updateProfile({
-        allowTrainingData: formData.get('allowTrainingData') === 'on',
         email: String(formData.get('email') ?? '').trim(),
         name: String(formData.get('name') ?? '').trim(),
         ...(password ? { password } : {}),
       })
 
       setProfile(response.user)
+      saveAuthUserName(response.user.name)
+      setDisplayName(response.user.name)
       setStatusMessage(response.message)
       setActivePanel('menu')
     } catch (error) {
@@ -142,7 +143,7 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
         onClick={handleToggle}
         type="button"
       >
-        {getInitials(profile)}
+        {getInitials(profile?.name ?? displayName)}
       </button>
 
       {isOpen ? (
@@ -150,7 +151,7 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
           <div className="profile-popover__header">
             <div>
               <p className="eyebrow">Profile</p>
-              <h3>{profile?.name ?? 'MintAI User'}</h3>
+              <h3>{(profile?.name ?? displayName) || 'CurrenSee User'}</h3>
               <span>{profile?.email ?? 'Loading profile...'}</span>
             </div>
             <button aria-label="Close profile" onClick={() => setIsOpen(false)} type="button">
@@ -168,10 +169,11 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
 
           {activePanel === 'menu' ? (
             <div className="profile-menu__body">
-              <div className="profile-summary">
+              {/* Future feature - temporarily hidden until plans are active. */}
+              {/* <div className="profile-summary">
                 <span>Plan</span>
                 <strong>{profile?.plan ?? 'free'}</strong>
-              </div>
+              </div> */}
               <div className="profile-actions-list">
                 <button onClick={() => setActivePanel('update')} type="button">
                   <Icon name="manage_accounts" size="sm" />
@@ -184,10 +186,6 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
                   <Icon name="chevron_right" size="sm" />
                 </button>
               </div>
-              <Button fullWidth onClick={onSignOut} size="small" variant="outline">
-                <Icon name="logout" size="sm" />
-                Sign Out
-              </Button>
             </div>
           ) : null}
 
@@ -213,14 +211,15 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
                 <input autoComplete="new-password" name="password" placeholder="Leave unchanged" type="password" />
               </label>
 
-              <label className="profile-checkbox">
+              {/* Future feature - temporarily hidden until the retraining pipeline is wired. */}
+              {/* <label className="profile-checkbox">
                 <input
                   defaultChecked={profile?.allowTrainingData ?? false}
                   name="allowTrainingData"
                   type="checkbox"
                 />
                 <span>Allow scans to improve model training</span>
-              </label>
+              </label> */}
 
               <Button disabled={isSaving} fullWidth size="small" type="submit" variant="primary">
                 {isSaving ? 'Saving...' : 'Save Changes'}
@@ -257,7 +256,7 @@ function ProfileMenu({ onSignOut }: ProfileMenuProps) {
                     </div>
                   </div>
                   <p className="profile-message">
-                    Plan: {usage.plan}. Reset reference: {formatDate(usage.resetAt)}.
+                    Resets daily. Next reset reference: {formatDate(usage.resetAt)}.
                   </p>
                 </>
               ) : null}

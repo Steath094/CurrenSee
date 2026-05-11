@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react'
-import { getApiErrorMessage, getPredictions } from '../../lib/api'
+import { getApiErrorMessage, getPredictionHistory } from '../../lib/api'
 import type {
   PredictionHistoryResponse,
   PredictionRecord,
 } from '../../types/prediction'
-import Button from '../common/Button'
 import Icon from '../common/Icon'
-
-const PAGE_SIZE = 10
 
 function formatConfidence(confidence: number) {
   const normalized = confidence <= 1 ? confidence * 100 : confidence
@@ -42,25 +39,10 @@ function formatTimestamp(value?: string) {
   }).format(new Date(value))
 }
 
-function getShowingRange(data?: PredictionHistoryResponse) {
-  if (!data || data.pagination.total === 0) {
-    return 'Showing 0 results'
-  }
-
-  const start = (data.pagination.page - 1) * data.pagination.limit + 1
-  const end = Math.min(
-    data.pagination.page * data.pagination.limit,
-    data.pagination.total,
-  )
-
-  return `Showing ${start}-${end} of ${data.pagination.total} results`
-}
-
 function PredictionHistory() {
   const [data, setData] = useState<PredictionHistoryResponse>()
   const [errorMessage, setErrorMessage] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
-  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let isActive = true
@@ -70,7 +52,7 @@ function PredictionHistory() {
       setErrorMessage(undefined)
 
       try {
-        const response = await getPredictions(page, PAGE_SIZE)
+        const response = await getPredictionHistory()
 
         if (isActive) {
           setData(response)
@@ -91,10 +73,9 @@ function PredictionHistory() {
     return () => {
       isActive = false
     }
-  }, [page])
+  }, [])
 
   const predictions = data?.predictions ?? []
-  const totalPages = data?.pagination.totalPages ?? 1
 
   return (
     <main className="history-main">
@@ -102,10 +83,11 @@ function PredictionHistory() {
         <section className="history-header">
           <div>
             <h1>Prediction History</h1>
-            <p>Access and manage historical currency intelligence scans.</p>
+            <p>Review recent CurrenSee predictions and feedback status.</p>
           </div>
 
-          <div className="history-filter-row">
+          {/* Future feature - temporarily hidden until history filters are wired. */}
+          {/* <div className="history-filter-row">
             <div className="history-filter">
               <Icon name="calendar_today" size="sm" />
               <span>All dates</span>
@@ -114,7 +96,7 @@ function PredictionHistory() {
               <Icon name="filter_list" size="sm" />
               <span>Model: All</span>
             </div>
-          </div>
+          </div> */}
         </section>
 
         <section className="history-table-card" aria-label="Prediction history table">
@@ -146,7 +128,14 @@ function PredictionHistory() {
                 </thead>
                 <tbody>
                   {predictions.map((prediction) => (
-                    <HistoryRow key={prediction._id} prediction={prediction} />
+                    <HistoryRow
+                      key={
+                        prediction.predictionId ??
+                        prediction._id ??
+                        `${prediction.denomination}-${prediction.createdAt}`
+                      }
+                      prediction={prediction}
+                    />
                   ))}
                 </tbody>
               </table>
@@ -154,29 +143,8 @@ function PredictionHistory() {
           ) : null}
         </section>
 
-        <section className="history-pagination" aria-label="Prediction pagination">
-          <p>{getShowingRange(data)}</p>
-          <div className="history-pagination__actions">
-            <Button
-              aria-label="Previous page"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
-              variant="icon"
-            >
-              <Icon name="chevron_left" size="sm" />
-            </Button>
-            <span>
-              Page {page} of {Math.max(totalPages, 1)}
-            </span>
-            <Button
-              aria-label="Next page"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((currentPage) => currentPage + 1)}
-              variant="icon"
-            >
-              <Icon name="chevron_right" size="sm" />
-            </Button>
-          </div>
+        <section className="history-pagination" aria-label="Prediction count">
+          <p>Showing latest {predictions.length} predictions</p>
         </section>
       </div>
     </main>
@@ -192,7 +160,11 @@ function HistoryRow({ prediction }: { prediction: PredictionRecord }) {
       <td>
         <div className="history-currency-cell">
           <div className="history-currency-thumb">
-            <Icon name="receipt_long" size="sm" />
+            {prediction.imageUrl ? (
+              <img alt={`${prediction.denomination} upload`} src={prediction.imageUrl} />
+            ) : (
+              <Icon name="receipt_long" size="sm" />
+            )}
           </div>
           <strong>{getCurrencyLabel(prediction.denomination)}</strong>
         </div>

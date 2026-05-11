@@ -1,186 +1,172 @@
-# 💰 AI Currency Detection Web App
+# CurrenSee
 
-A full-stack AI-powered web application that detects the denomination of Indian currency notes from images using a trained deep learning model.
+CurrenSee is a full-stack AI-powered currency detection platform for Indian currency notes.
 
----
+Users can upload a currency image, select an AI model version, receive a denomination prediction with a confidence score, review prediction history, and provide feedback when a prediction is wrong.
 
-## 🚀 Overview
+## Tech Stack
 
-This project allows users to upload an image of a currency note and get:
+Frontend:
 
-* ✅ Predicted denomination (₹10, ₹20, ₹50, etc.)
-* 📊 Confidence score of the prediction
+- React
+- Vite
+- Responsive dark UI
 
-The system uses a **React frontend**, **Node.js backend**, and a **FastAPI-based ML model server**.
+Backend:
 
----
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- Cloudinary
 
-## 🧠 Architecture
+Model Server:
 
+- FastAPI
+- TensorFlow `.h5` models
+
+## Current Features
+
+- Image upload
+- AI currency prediction
+- Multi-model selection
+- Backend-to-FastAPI model routing
+- MongoDB model configuration
+- Prediction persistence
+- Cloudinary image storage
+- Prediction history
+- Daily usage limits
+- Feedback capture
+
+## Project Structure
+
+```txt
+frontend/       React app
+backend/        Express API and MongoDB models
+model-server/   FastAPI TensorFlow model server
 ```
-Frontend (React)
-      ↓
-Backend (Node.js + Express + Multer)
-      ↓
-Model Server (FastAPI + TensorFlow)
-      ↓
-Prediction Response
+
+Recommended model layout:
+
+```txt
+model-server/
+  models/
+    v1/
+      model.h5
+    v2/
+      model.h5
 ```
 
----
+## Run The Project
 
-## 📁 Project Structure
+Start the services in this order.
 
-```
-project-root/
-│
-├── frontend/        # React app (Vite)
-├── backend/         # Node.js server (Express + Multer)
-├── model-server/    # FastAPI ML server
-│   ├── model/       # .h5 trained model
-│   └── main.py      # FastAPI app
-```
-
----
-
-## ⚙️ Prerequisites
-
-Make sure you have installed:
-
-* Node.js (v18+ recommended)
-* Python 3.10
-* pip
-
----
-
-## 🔧 Setup & Run Instructions
-
----
-
-### 🔹 1. Model Server (FastAPI)
+### 1. Model Server
 
 ```bash
 cd model-server
-
-# create virtual environment
 py -3.10 -m venv venv
-
-# activate (Git Bash)
-source venv/Scripts/activate
-
-# OR (PowerShell)
 venv\Scripts\activate
-
-# install dependencies
-pip install fastapi uvicorn tensorflow pillow numpy
-
-# run server
+pip install fastapi uvicorn tensorflow pillow numpy python-multipart
 uvicorn main:app --reload --port 8000
 ```
 
-👉 Runs on: http://localhost:8000
-👉 Swagger UI: http://localhost:8000/docs
+Model server:
 
----
+```txt
+http://localhost:8000
+```
 
-### 🔹 2. Backend (Node.js)
+### 2. Backend
 
 ```bash
 cd backend
-
 npm install
-
-# run server
 npm run dev
-# OR
-node server.js
 ```
 
-👉 Runs on: http://localhost:8080
+Backend API:
 
----
+```txt
+http://localhost:8080
+```
 
-### 🔹 3. Frontend (React)
+Backend environment variables:
+
+```env
+MONGO_URI=
+JWT_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+### 3. Frontend
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
-👉 Runs on: http://localhost:5173
+Frontend:
 
----
-
-## ▶️ Running the Full System
-
-Start services in this order:
-
-1. ✅ FastAPI Model Server
-2. ✅ Node Backend
-3. ✅ React Frontend
-
----
-
-## 🔗 API Endpoints
-
-### Backend
-
+```txt
+http://localhost:5173
 ```
+
+## Core API Flow
+
+Prediction:
+
+```txt
+Frontend -> Backend -> FastAPI -> Backend -> Cloudinary -> MongoDB -> Frontend
+```
+
+Feedback:
+
+```txt
+Frontend -> Backend -> MongoDB
+```
+
+## Main API Endpoints
+
+```txt
+GET  /api/models
 POST /api/predict
+GET  /api/predictions/history
+POST /api/feedback
+GET  /api/user/usage-limit
 ```
 
-### FastAPI
+FastAPI:
 
-```
+```txt
 POST /predict
 ```
 
----
-
-## 🔄 Example Flow
-
-1. User uploads an image from the frontend
-2. Backend receives the image using multer
-3. Backend sends the image to FastAPI
-4. FastAPI processes the image using the ML model
-5. Prediction is returned to frontend
-
----
-
-## 📊 Example Response
+## Example Prediction Response
 
 ```json
 {
-  "denomination": "₹100",
-  "confidence": 0.93
+  "predictionId": "...",
+  "denomination": "Rs. 100",
+  "confidence": 0.93,
+  "imageUrl": "https://res.cloudinary.com/...",
+  "modelVersion": "v1"
 }
 ```
 
----
+## Future Work
 
-## 🔮 Future Improvements
+- S3 image storage
+- Advanced analytics
+- Retraining pipeline
+- Premium plans
+- Better model versions
 
-* 🔁 Model version switching (v1, v2, etc.)
-* 🔐 User authentication & usage limits
-* ☁️ S3 storage for dataset collection
-* 🧠 Feedback loop for improving model accuracy
-* 📸 Webcam support
+## Notes
 
----
-
-## 🧑‍💻 Author
-
-Built as a full-stack AI project integrating machine learning with web technologies.
-
----
-
-## ⭐ Notes
-
-* Ensure Python version is **3.10** for TensorFlow compatibility
-* Model must match preprocessing (224x224, RGB, normalized)
-* Start services in correct order to avoid connection issues
-
----
+- Use Python 3.10 for TensorFlow compatibility.
+- Model input preprocessing expects RGB images resized to `224x224` and normalized.
+- Keep FastAPI focused on inference; business logic stays in the backend.

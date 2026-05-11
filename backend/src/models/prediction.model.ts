@@ -38,6 +38,8 @@ const predictionSchema = new mongoose.Schema(
   }
 );
 
+predictionSchema.index({ userId: 1, createdAt: -1 });
+
 export const Prediction = mongoose.model(
   "Prediction",
   predictionSchema

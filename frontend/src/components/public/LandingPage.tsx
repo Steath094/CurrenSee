@@ -42,27 +42,28 @@ const pipelineSteps = [
   },
 ]
 
-const plans = [
-  {
-    cta: 'Select Plan',
-    features: ['100 scans per month', 'Standard accuracy', 'Dashboard access'],
-    name: 'Free',
-    price: '$0',
-  },
-  {
-    cta: 'Start Pro',
-    featured: true,
-    features: ['10,000 scans per month', 'Neural accuracy', 'API-ready workflow'],
-    name: 'Pro',
-    price: '$99',
-  },
-  {
-    cta: 'Contact Sales',
-    features: ['Unlimited scans', 'Dedicated node', 'SLA guarantee'],
-    name: 'Enterprise',
-    price: 'Custom',
-  },
-]
+// Future feature - temporarily hidden until premium plans are wired.
+// const plans = [
+//   {
+//     cta: 'Select Plan',
+//     features: ['100 scans per month', 'Standard accuracy', 'Dashboard access'],
+//     name: 'Free',
+//     price: '$0',
+//   },
+//   {
+//     cta: 'Start Pro',
+//     featured: true,
+//     features: ['10,000 scans per month', 'Neural accuracy', 'API-ready workflow'],
+//     name: 'Pro',
+//     price: '$99',
+//   },
+//   {
+//     cta: 'Contact Sales',
+//     features: ['Unlimited scans', 'Dedicated node', 'SLA guarantee'],
+//     name: 'Enterprise',
+//     price: 'Custom',
+//   },
+// ]
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -73,13 +74,13 @@ function LandingPage({ onLogin, onSignup }: LandingPageProps) {
     <div className="public-page landing-page">
       <header className="public-nav">
         <button
-          aria-label="MintAI home"
+          aria-label="CurrenSee home"
           className="public-brand"
           onClick={() => scrollToSection('landing-hero')}
           type="button"
         >
           <Icon filled name="neurology" size="lg" />
-          <span>MintAI</span>
+          <span>CurrenSee</span>
         </button>
 
         <nav className="public-nav__links" aria-label="Landing navigation">
@@ -89,11 +90,12 @@ function LandingPage({ onLogin, onSignup }: LandingPageProps) {
           <button onClick={() => scrollToSection('technology')} type="button">
             Technology
           </button>
-          <button onClick={() => scrollToSection('pricing')} type="button">
+          {/* Future feature - temporarily hidden until premium plans are wired. */}
+          {/* <button onClick={() => scrollToSection('pricing')} type="button">
             Pricing
-          </button>
-          <button onClick={() => scrollToSection('history')} type="button">
-            History
+          </button> */}
+          <button onClick={() => scrollToSection('workflow')} type="button">
+            Workflow
           </button>
         </nav>
 
@@ -115,7 +117,7 @@ function LandingPage({ onLogin, onSignup }: LandingPageProps) {
 
           <div className="landing-hero__content">
             <p className="public-eyebrow">High-precision neural analysis</p>
-            <h1>MintAI Currency Intelligence</h1>
+            <h1>CurrenSee</h1>
             <p>
               Master denomination detection, authenticity signals, and asset
               verification from one focused analysis dashboard.
@@ -176,7 +178,8 @@ function LandingPage({ onLogin, onSignup }: LandingPageProps) {
           </div>
         </section>
 
-        <section className="public-section" id="pricing">
+        {/* Future feature - temporarily hidden until premium plans are wired. */}
+        {/* <section className="public-section" id="pricing">
           <div className="public-section__header">
             <p className="public-eyebrow">Scalable intelligence</p>
             <h2>Choose the right analysis volume</h2>
@@ -212,31 +215,32 @@ function LandingPage({ onLogin, onSignup }: LandingPageProps) {
               </article>
             ))}
           </div>
-        </section>
+        </section> */}
 
-        <section className="public-band public-band--cta" id="history">
+        <section className="public-band public-band--cta" id="workflow">
           <div>
             <p className="public-eyebrow">Ready when you are</p>
             <h2>Secure your currency analysis workflow.</h2>
           </div>
-          <button className="public-primary-button public-primary-button--large" onClick={onSignup} type="button">
+          {/* <button className="public-primary-button public-primary-button--large" onClick={onSignup} type="button">
             Unlock Premium Insights
-          </button>
+          </button> */}
         </section>
       </main>
 
       <footer className="public-footer">
         <div className="public-brand public-brand--static">
           <Icon filled name="neurology" size="md" />
-          <span>MintAI</span>
+          <span>CurrenSee</span>
         </div>
-        <p>(c) 2026 MintAI Technologies. High-precision neural analysis.</p>
-        <nav aria-label="Legal links">
+        <p>(c) 2026 CurrenSee. High-precision neural analysis.</p>
+        {/* Future feature - temporarily hidden until legal/docs pages are wired. */}
+        {/* <nav aria-label="Legal links">
           <a href="#privacy">Privacy Policy</a>
           <a href="#terms">Terms of Service</a>
           <a href="#api">API Documentation</a>
           <a href="#compliance">Compliance</a>
-        </nav>
+        </nav> */}
       </footer>
     </div>
   )

@@ -8,13 +8,16 @@ export type NavigationItem = {
 }
 
 export const primaryNavigation: NavigationItem[] = [
-  { icon: 'monetization_on', label: 'Scan', view: 'scan' },
+  { icon: 'monetization_on', label: 'Detect', view: 'scan' },
   { icon: 'history', label: 'History', view: 'history' },
-  { icon: 'query_stats', label: 'Valuation' },
-  { icon: 'auto_awesome', label: 'Insights' },
+  // Future feature - temporarily hidden until valuation APIs are wired.
+  // { icon: 'query_stats', label: 'Valuation' },
+  // Future feature - temporarily hidden until analytics/insights APIs are wired.
+  // { icon: 'auto_awesome', label: 'Insights' },
 ]
 
 export const utilityNavigation: NavigationItem[] = [
-  { icon: 'help_outline', label: 'Help' },
+  // Future feature - temporarily hidden until help/support content is wired.
+  // { icon: 'help_outline', label: 'Help' },
   { icon: 'logout', label: 'Sign Out' },
 ]

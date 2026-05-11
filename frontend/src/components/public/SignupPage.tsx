@@ -48,12 +48,12 @@ function SignupPage({ onBackHome, onShowLogin, onSignup }: SignupPageProps) {
 
   return (
     <main className="auth-page auth-page--signup">
-      <section className="auth-visual" aria-label="MintAI platform preview">
+      <section className="auth-visual" aria-label="CurrenSee platform preview">
         <img src={heroImage} alt="" />
         <div className="auth-visual__content">
           <button className="auth-brand auth-brand--visual" onClick={onBackHome} type="button">
             <Icon filled name="neurology" size="lg" />
-            <span>MintAI</span>
+            <span>CurrenSee</span>
           </button>
           <h1>
             Initialize Your
@@ -66,19 +66,20 @@ function SignupPage({ onBackHome, onShowLogin, onSignup }: SignupPageProps) {
         </div>
       </section>
 
-      <section className="auth-panel" aria-label="Create MintAI account">
+      <section className="auth-panel" aria-label="Create CurrenSee account">
         <div className="auth-panel__inner">
           <button className="auth-brand auth-brand--mobile" onClick={onBackHome} type="button">
             <Icon filled name="neurology" size="lg" />
-            <span>MintAI</span>
+            <span>CurrenSee</span>
           </button>
 
           <div className="auth-card__header auth-card__header--left">
             <h1>Create Account</h1>
-            <p>Join the MintAI platform to begin.</p>
+            <p>Join CurrenSee to begin.</p>
           </div>
 
-          <div className="social-login-row" aria-label="Social sign up options">
+          {/* Future feature - temporarily hidden until OAuth sign up is wired. */}
+          {/* <div className="social-login-row" aria-label="Social sign up options">
             <button className="social-login" type="button">
               <span className="social-login__google" aria-hidden="true">
                 G
@@ -89,13 +90,14 @@ function SignupPage({ onBackHome, onShowLogin, onSignup }: SignupPageProps) {
               <Icon filled name="code" size="sm" />
               <span>GitHub</span>
             </button>
-          </div>
+          </div> */}
 
-          <div className="auth-divider">
+          {/* Future feature - temporarily hidden until OAuth sign up is wired. */}
+          {/* <div className="auth-divider">
             <span />
             <p>or continue with email</p>
             <span />
-          </div>
+          </div> */}
 
           <form className="auth-form" onSubmit={handleSubmit}>
             <label className="auth-field" htmlFor="signup-name">
@@ -161,7 +163,7 @@ function SignupPage({ onBackHome, onShowLogin, onSignup }: SignupPageProps) {
             <label className="terms-row" htmlFor="signup-terms">
               <input id="signup-terms" required type="checkbox" />
               <span>
-                I agree to the MintAI <a href="#terms">Terms of Service</a> and{' '}
+                I agree to the CurrenSee <a href="#terms">Terms of Service</a> and{' '}
                 <a href="#privacy">Privacy Policy</a>.
               </span>
             </label>

@@ -4,11 +4,15 @@ import FormData from "form-data";
 import mongoose from "mongoose";
 import fs from "node:fs";
 import { Prediction } from "../models/prediction.model";
+import { getActiveModelConfigByVersion } from "../services/modelConfig.service";
+import { uploadPredictionImage } from "../services/storage.service";
+import { incrementTodayUsage } from "../services/usage.service";
 
 type ModelPredictionResponse = {
     confidence?: number | string;
     denomination?: string;
     error?: unknown;
+    modelVersion?: string;
 };
 
 type ParsedPredictionResponse =
@@ -74,6 +78,10 @@ function getPositiveInteger(value: unknown, fallback: number) {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function getRequestedModelVersion(value: unknown) {
+    return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 function getErrorDetails(error: unknown) {
     if (axios.isAxiosError(error)) {
         return error.response?.data || error.message;
@@ -96,6 +104,20 @@ export const getPrediction = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "No file uploaded" });
         }
 
+        const requestedModelVersion = getRequestedModelVersion(req.body?.modelVersion);
+
+        if (!requestedModelVersion) {
+            return res.status(400).json({ message: "modelVersion is required" });
+        }
+
+        const modelConfig = await getActiveModelConfigByVersion(requestedModelVersion);
+
+        if (!modelConfig) {
+            return res.status(400).json({
+                message: "Invalid or inactive modelVersion",
+            });
+        }
+
         const formData = new FormData();
 
         if (req.file.buffer) {
@@ -106,10 +128,14 @@ export const getPrediction = async (req: Request, res: Response) => {
             return res.status(400).json({ message: "Uploaded file is invalid" });
         }
 
-        console.log("[predict] Sending request to FastAPI");
+        formData.append("modelVersion", modelConfig.version);
+
+        console.log("[predict] Sending request to FastAPI", {
+            modelVersion: modelConfig.version,
+        });
 
         const response = await axios.post<ModelPredictionResponse>(
-            "http://localhost:8000/predict",
+            modelConfig.endpoint,
             formData,
             {
                 headers: formData.getHeaders(),
@@ -128,16 +154,23 @@ export const getPrediction = async (req: Request, res: Response) => {
             });
         }
 
+        const imageUrl = await uploadPredictionImage(req.file);
+
         const prediction = await Prediction.create({
             userId,
-            imageUrl: req.file.filename,
+            imageUrl,
+            modelVersion: modelConfig.version,
             denomination: modelPrediction.denomination,
             confidence: modelPrediction.confidence,
         });
 
+        await incrementTodayUsage(String(userId));
+
         return res.status(200).json({
             confidence: modelPrediction.confidence,
             denomination: modelPrediction.denomination,
+            imageUrl,
+            modelVersion: modelConfig.version,
             predictionId: prediction._id,
         });
     } catch (error) {
@@ -154,6 +187,48 @@ export const getPrediction = async (req: Request, res: Response) => {
         return res.status(500).json({
             message: "Failed to get prediction",
             error: "Internal server error",
+        });
+    }
+};
+
+export const getPredictionHistory = async (req: Request, res: Response) => {
+    try {
+        const userId = getAuthenticatedUserObjectId(req, res);
+
+        if (!userId) {
+            return;
+        }
+
+        const predictions = await Prediction.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .select({
+                _id: 1,
+                confidence: 1,
+                createdAt: 1,
+                denomination: 1,
+                imageUrl: 1,
+                isCorrect: 1,
+                modelVersion: 1,
+            })
+            .lean();
+
+        return res.status(200).json({
+            predictions: predictions.map((prediction) => ({
+                confidence: prediction.confidence,
+                createdAt: prediction.createdAt,
+                denomination: prediction.denomination,
+                imageUrl: prediction.imageUrl,
+                isCorrect: prediction.isCorrect,
+                modelVersion: prediction.modelVersion,
+                predictionId: prediction._id,
+            })),
+        });
+    } catch (error) {
+        console.error("[predictions] Failed to get prediction history", error);
+
+        return res.status(500).json({
+            message: "Failed to get prediction history",
         });
     }
 };

@@ -4,10 +4,13 @@ import LandingPage from './components/public/LandingPage'
 import LoginPage from './components/public/LoginPage'
 import SignupPage from './components/public/SignupPage'
 import {
+  clearAuthUserName,
   clearAuthToken,
   getAuthToken,
   loginUser,
+  logoutUser,
   registerUser,
+  saveAuthUserName,
   saveAuthToken,
 } from './lib/api'
 import type { AuthPayload, RegisterPayload } from './lib/api'
@@ -57,26 +60,34 @@ function App() {
     window.location.hash = view
   }
 
-  const handleAuthToken = (token: string) => {
+  const handleAuthToken = (token: string, name: string) => {
     saveAuthToken(token)
+    saveAuthUserName(name)
     setAuthToken(token)
     clearHash()
   }
 
   const handleLogin = async (payload: AuthPayload) => {
     const response = await loginUser(payload)
-    handleAuthToken(response.token)
+    handleAuthToken(response.token, response.user.name)
   }
 
   const handleSignup = async (payload: RegisterPayload) => {
     const response = await registerUser(payload)
-    handleAuthToken(response.token)
+    handleAuthToken(response.token, response.user.name)
   }
 
-  const handleSignOut = () => {
-    clearAuthToken()
-    setAuthToken(null)
-    showPublicView('landing')
+  const handleSignOut = async () => {
+    try {
+      await logoutUser()
+    } catch (error) {
+      console.warn('Logout API failed; clearing local session.', error)
+    } finally {
+      clearAuthUserName()
+      clearAuthToken()
+      setAuthToken(null)
+      showPublicView('landing')
+    }
   }
 
   if (authToken) {

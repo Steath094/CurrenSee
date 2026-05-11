@@ -29,6 +29,8 @@ const feedbackSchema = new mongoose.Schema(
   }
 );
 
+feedbackSchema.index({ predictionId: 1, userId: 1 }, { unique: true });
+
 export const Feedback = mongoose.model(
   "Feedback",
   feedbackSchema

@@ -39,10 +39,10 @@ function LoginPage({ onBackHome, onLogin, onShowSignup }: LoginPageProps) {
     <main className="auth-page auth-page--login">
       <div className="auth-page__glow" aria-hidden="true" />
 
-      <section className="auth-card auth-card--compact" aria-label="MintAI login">
+      <section className="auth-card auth-card--compact" aria-label="CurrenSee login">
         <button className="auth-brand" onClick={onBackHome} type="button">
           <Icon filled name="neurology" size="lg" />
-          <span>MintAI</span>
+          <span>CurrenSee</span>
         </button>
 
         <div className="auth-card__header">
@@ -59,7 +59,7 @@ function LoginPage({ onBackHome, onLogin, onShowSignup }: LoginPageProps) {
                 autoComplete="email"
                 id="login-email"
                 name="email"
-                placeholder="agent@mintai.network"
+                placeholder="name@example.com"
                 required
                 type="email"
               />
@@ -69,7 +69,8 @@ function LoginPage({ onBackHome, onLogin, onShowSignup }: LoginPageProps) {
           <label className="auth-field" htmlFor="login-password">
             <span className="auth-field__label-row">
               <span>Password</span>
-              <a href="#forgot-password">Forgot Password?</a>
+              {/* Future feature - temporarily hidden until password reset is wired. */}
+              {/* <a href="#forgot-password">Forgot Password?</a> */}
             </span>
             <div className="auth-field__control">
               <Icon name="lock" size="sm" />

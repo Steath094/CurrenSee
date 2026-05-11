@@ -11,13 +11,13 @@ type SidebarProps = {
 
 function Sidebar({ activeView, onNavigate, onSignOut }: SidebarProps) {
   return (
-    <aside className="sidebar" aria-label="MintAI sidebar">
+    <aside className="sidebar" aria-label="CurrenSee sidebar">
       <div className="sidebar__brand">
         <div className="sidebar__brand-mark">
           <Icon filled name="neurology" size="lg" />
         </div>
-        <h1>MintAI</h1>
-        <p>Currency Intelligence</p>
+        <h1>CurrenSee</h1>
+        <p>Currency detection</p>
       </div>
 
       <nav className="sidebar__nav" aria-label="Primary navigation">
@@ -36,9 +36,10 @@ function Sidebar({ activeView, onNavigate, onSignOut }: SidebarProps) {
       </nav>
 
       <div className="sidebar__footer">
-        <Button fullWidth variant="outline">
+        {/* Future feature - temporarily hidden until premium model upgrades are wired. */}
+        {/* <Button fullWidth variant="outline">
           Upgrade Model
-        </Button>
+        </Button> */}
 
         <nav className="sidebar__nav" aria-label="Utility navigation">
           {utilityNavigation.map((item) => {

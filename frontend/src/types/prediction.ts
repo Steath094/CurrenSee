@@ -3,6 +3,8 @@ export type CurrencyPrediction = {
   currency: string
   series: string
   confidence: number
+  imageUrl?: string | null
+  modelVersion?: string
   predictionId?: string
 }
 
@@ -11,6 +13,8 @@ export type PredictionApiResponse = {
   prediction?: string | number
   label?: string | number
   predictionId?: string
+  imageUrl?: string | null
+  modelVersion?: string
   currency?: string
   series?: string
   confidence?: string | number
@@ -18,23 +22,18 @@ export type PredictionApiResponse = {
 }
 
 export type PredictionRecord = {
-  _id: string
+  _id?: string
   confidence: number
   createdAt?: string
   denomination: string
   imageUrl?: string | null
   isCorrect?: boolean | null
   modelVersion: string
+  predictionId?: string
   updatedAt?: string
 }
 
 export type PredictionHistoryResponse = {
-  pagination: {
-    limit: number
-    page: number
-    total: number
-    totalPages: number
-  }
   predictions: PredictionRecord[]
 }
 

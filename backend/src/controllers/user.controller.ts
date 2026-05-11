@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model";
+import { getDailyUsageStatus } from "../services/usage.service";
 
 declare global {
     namespace Express {
@@ -10,11 +11,6 @@ declare global {
         }
     }
 }
-
-const PLAN_USAGE_LIMITS = {
-    free: 100,
-    pro: 10000,
-} as const;
 
 function createToken(userId: unknown) {
     if (!process.env.JWT_SECRET) {
@@ -71,6 +67,10 @@ export const login = async (req: Request, res: Response) => {
         console.error("Login error:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
+};
+
+export const logout = async (_req: Request, res: Response) => {
+    return res.status(200).json({ message: "Logout successful" });
 };
 
 export const register = async (req: Request, res: Response) => {
@@ -173,24 +173,10 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 export const getUsageLimit = async (req: Request, res: Response) => {
     try {
-        const user = await User.findById(getRequestUserId(req));
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        const plan = user.plan as keyof typeof PLAN_USAGE_LIMITS;
-        const limit = PLAN_USAGE_LIMITS[plan] ?? PLAN_USAGE_LIMITS.free;
-        const used = user.dailyUsageCount;
+        const usage = await getDailyUsageStatus(getRequestUserId(req));
 
         return res.status(200).json({
-            usage: {
-                limit,
-                plan: user.plan,
-                remaining: Math.max(limit - used, 0),
-                resetAt: user.lastUsageReset,
-                used,
-            },
+            usage,
         });
     } catch (error) {
         console.error("Usage limit error:", error);

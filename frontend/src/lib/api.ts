@@ -4,7 +4,8 @@ import type {
   PredictionPreviewResponse,
 } from '../types/prediction'
 
-export const AUTH_TOKEN_STORAGE_KEY = 'mintai.authToken'
+export const AUTH_TOKEN_STORAGE_KEY = 'currensee.authToken'
+export const AUTH_USER_NAME_STORAGE_KEY = 'currensee.userName'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api'
@@ -42,7 +43,6 @@ export type ProfileResponse = {
 
 export type UsageLimit = {
   limit: number
-  plan: 'free' | 'pro'
   remaining: number
   resetAt: string
   used: number
@@ -50,6 +50,12 @@ export type UsageLimit = {
 
 export type UsageLimitResponse = {
   usage: UsageLimit
+}
+
+export type AvailableModel = {
+  description: string
+  name: string
+  version: string
 }
 
 export type UpdateProfilePayload = {
@@ -79,6 +85,22 @@ export function clearAuthToken() {
   window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
 }
 
+export function getAuthUserName() {
+  try {
+    return window.localStorage.getItem(AUTH_USER_NAME_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function saveAuthUserName(name: string) {
+  window.localStorage.setItem(AUTH_USER_NAME_STORAGE_KEY, name)
+}
+
+export function clearAuthUserName() {
+  window.localStorage.removeItem(AUTH_USER_NAME_STORAGE_KEY)
+}
+
 apiClient.interceptors.request.use((config) => {
   const token = getAuthToken()
 
@@ -102,6 +124,12 @@ export function getApiErrorMessage(error: unknown) {
 
 export async function loginUser(payload: AuthPayload) {
   const response = await apiClient.post<AuthResponse>('/user/login', payload)
+
+  return response.data
+}
+
+export async function logoutUser() {
+  const response = await apiClient.post<{ message: string }>('/user/logout')
 
   return response.data
 }
@@ -133,6 +161,12 @@ export async function getUsageLimit() {
   return response.data
 }
 
+export async function getModels() {
+  const response = await apiClient.get<AvailableModel[]>('/models')
+
+  return response.data
+}
+
 export async function postPrediction<TResponse>(formData: FormData) {
   const response = await apiClient.post<TResponse>('/predict', formData)
 
@@ -147,21 +181,25 @@ export async function getPredictionPreview() {
   return response.data
 }
 
-export async function getPredictions(page = 1, limit = 10) {
-  const response = await apiClient.get<PredictionHistoryResponse>('/predict', {
-    params: { limit, page },
-  })
+export async function getPredictionHistory() {
+  const response =
+    await apiClient.get<PredictionHistoryResponse>('/predictions/history')
 
   return response.data
 }
 
-export async function updatePredictionFeedback(
+export async function submitFeedback(
   predictionId: string,
-  isCorrect: boolean,
+  wasCorrect: boolean,
+  correctedLabel?: string,
 ) {
-  const response = await apiClient.patch<{ message: string }>(
-    `/predict/${predictionId}/feedback`,
-    { isCorrect },
+  const response = await apiClient.post<{ feedbackId: string; message: string }>(
+    '/feedback',
+    {
+      ...(correctedLabel ? { correctedLabel } : {}),
+      predictionId,
+      wasCorrect,
+    },
   )
 
   return response.data

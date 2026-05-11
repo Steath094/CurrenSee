@@ -16,9 +16,15 @@ app.get("/", (req, res) => {
 });
 import userRoute from "./routes/user.route";
 import predictionRoute from "./routes/prediction.route";
+import modelRoute from "./routes/model.route";
+import predictionsRoute from "./routes/predictions.route";
+import feedbackRoute from "./routes/feedback.route";
 
 app.use("/api/user", userRoute);
 app.use("/api/predict", predictionRoute);
+app.use("/api/models", modelRoute);
+app.use("/api/predictions", predictionsRoute);
+app.use("/api/feedback", feedbackRoute);
 
 connectDB()
     .then(() => {
