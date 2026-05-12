@@ -8,7 +8,18 @@ export const AUTH_TOKEN_STORAGE_KEY = 'currensee.authToken'
 export const AUTH_USER_NAME_STORAGE_KEY = 'currensee.userName'
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api'
+  import.meta.env.VITE_API_BASE_URL ??
+  getApiBaseUrl(import.meta.env.VITE_BACKEND_URL)
+
+function getApiBaseUrl(backendUrl?: string) {
+  if (!backendUrl) {
+    return 'http://localhost:8080/api'
+  }
+
+  const normalizedUrl = backendUrl.replace(/\/+$/, '')
+
+  return normalizedUrl.endsWith('/api') ? normalizedUrl : `${normalizedUrl}/api`
+}
 
 export type AuthPayload = {
   email: string

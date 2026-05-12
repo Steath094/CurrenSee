@@ -13,10 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 MODEL_FILE_NAMES = ("model.h5", "model.keras")
 MODEL_FILE_PATTERNS = ("*.h5", "*.keras")
+DEFAULT_TARGET_SIZE = (224, 224)
+RESCALE_FACTOR = 1.0 / 255.0
 
 loaded_models: dict[str, Any] = {}
 
-class_map = {
+currency_labels = {
     0: "Rs. 10",
     1: "Rs. 20",
     2: "Rs. 50",
@@ -73,10 +75,27 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-def preprocess_image(image_bytes: bytes) -> np.ndarray:
+def get_model_target_size(model: Any) -> tuple[int, int]:
+    input_shape = getattr(model, "input_shape", None)
+
+    if isinstance(input_shape, list):
+        input_shape = input_shape[0] if input_shape else None
+
+    if input_shape and len(input_shape) >= 3:
+        height = input_shape[1]
+        width = input_shape[2]
+
+        if isinstance(height, int) and isinstance(width, int):
+            return height, width
+
+    return DEFAULT_TARGET_SIZE
+
+
+def preprocess_image(image_bytes: bytes, target_size: tuple[int, int]) -> np.ndarray:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image = image.resize((224, 224))
-    image_array = np.array(image) / 255.0
+    height, width = target_size
+    image = image.resize((width, height), Image.Resampling.NEAREST)
+    image_array = np.asarray(image, dtype=np.float32) * RESCALE_FACTOR
 
     return np.expand_dims(image_array, axis=0)
 
@@ -98,7 +117,8 @@ async def predict(
 
     try:
         contents = await file.read()
-        image = preprocess_image(contents)
+        target_size = get_model_target_size(selected_model)
+        image = preprocess_image(contents, target_size)
 
         raw_predictions = selected_model.predict(image, verbose=0)
         scores = np.asarray(raw_predictions)
@@ -109,7 +129,18 @@ async def predict(
         scores = scores.reshape(-1)
         predicted_class = int(np.argmax(scores))
         confidence = float(np.max(scores))
-        label = class_map.get(predicted_class, "Unknown")
+        label = currency_labels.get(predicted_class, "Unknown")
+
+        print(
+            "[predict] Prediction complete",
+            {
+                "modelVersion": version,
+                "inputSize": target_size,
+                "predictedClass": predicted_class,
+                "denomination": label,
+                "confidence": round(confidence, 3),
+            },
+        )
 
         return {
             "denomination": label,
@@ -119,4 +150,11 @@ async def predict(
     except HTTPException:
         raise
     except Exception as exc:
+        print(
+            "[predict] Prediction failed",
+            {
+                "modelVersion": version,
+                "error": str(exc),
+            },
+        )
         raise HTTPException(status_code=500, detail="Prediction failed") from exc

@@ -82,6 +82,18 @@ function getRequestedModelVersion(value: unknown) {
     return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function getPredictionEndpoint(configEndpoint: string) {
+    if (process.env.MODEL_SERVER_PREDICT_URL) {
+        return process.env.MODEL_SERVER_PREDICT_URL;
+    }
+
+    if (process.env.MODEL_SERVER_URL) {
+        return `${process.env.MODEL_SERVER_URL.replace(/\/+$/, "")}/predict`;
+    }
+
+    return configEndpoint;
+}
+
 function getErrorDetails(error: unknown) {
     if (axios.isAxiosError(error)) {
         return error.response?.data || error.message;
@@ -134,8 +146,10 @@ export const getPrediction = async (req: Request, res: Response) => {
             modelVersion: modelConfig.version,
         });
 
+        const predictionEndpoint = getPredictionEndpoint(modelConfig.endpoint);
+
         const response = await axios.post<ModelPredictionResponse>(
-            modelConfig.endpoint,
+            predictionEndpoint,
             formData,
             {
                 headers: formData.getHeaders(),

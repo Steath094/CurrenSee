@@ -115,6 +115,59 @@ Frontend:
 http://localhost:5173
 ```
 
+## Docker Compose Deployment
+
+CurrenSee can run on one EC2 machine with three containers:
+
+- `frontend`: nginx serving the Vite production build
+- `backend`: Express API
+- `model-server`: FastAPI + TensorFlow
+
+MongoDB Atlas and Cloudinary stay external.
+
+Create a root `.env` file beside `docker-compose.yml`:
+
+```env
+MONGODB_URI=
+JWT_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+VITE_BACKEND_URL=http://YOUR_EC2_PUBLIC_IP:8080
+```
+
+For local Docker testing, use:
+
+```env
+VITE_BACKEND_URL=http://localhost:8080
+```
+
+Build and run:
+
+```bash
+docker compose up --build -d
+```
+
+View logs:
+
+```bash
+docker compose logs -f
+```
+
+Stop:
+
+```bash
+docker compose down
+```
+
+Inside Docker, the backend calls FastAPI through Docker DNS:
+
+```txt
+http://model-server:8000/predict
+```
+
+The frontend runs in the browser, so `VITE_BACKEND_URL` must be a URL the browser can reach, such as your EC2 public IP or domain.
+
 ## Core API Flow
 
 Prediction:
@@ -168,5 +221,5 @@ POST /predict
 ## Notes
 
 - Use Python 3.10 for TensorFlow compatibility.
-- Model input preprocessing expects RGB images resized to `224x224` and normalized.
+- Model input preprocessing mirrors the training/test notebook: RGB images resized to the selected model input size and rescaled by `1/255`.
 - Keep FastAPI focused on inference; business logic stays in the backend.

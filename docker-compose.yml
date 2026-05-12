@@ -1,0 +1,38 @@
+services:
+  model-server:
+    build:
+      context: ./model-server
+    container_name: currensee-model-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: currensee-backend
+    restart: unless-stopped
+    depends_on:
+      - model-server
+    environment:
+      PORT: 8080
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      MODEL_SERVER_PREDICT_URL: http://model-server:8000/predict
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:8080}
+    container_name: currensee-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
